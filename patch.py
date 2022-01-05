@@ -5,6 +5,8 @@
 import md5
 import argparse
 
+import copy
+
 # These variables will be put into the modified firmware
 # Modify as you like
 
@@ -62,19 +64,40 @@ scancode_table2 = [0x00, 0x35, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23,
                    0x00, 0x80, 0x00, 0x00]
 
 # See README for full id => key mapping
-key_id_ctrl = 17
-key_id_caps = 20
-key_id_backspace = 112
-key_id_backslash = 117
+# (sourceRow, sourceCol): (destinationRow, destinationCol)
+key_mapping = {
+    # the ELF which i got has these changes natively for some reason
+    # this re-does them for verification
+    # (4, 2) : (1, 1) ,   # caps => super_l
+    # (1, 0) : (1, 1) ,   # alt_l => super_l
+    # (1, 1) : (1, 0) ,   # super_l => alt_l
+    # (1, 11): (1, 13),   # alt_r => super_r
+    # (1, 13): (1, 11),   # super_r => alt_r
+}
+# key_id_ctrl = 17
+# key_id_caps = 20
+# key_id_backspace = 112
+# key_id_backslash = 117
+
+def convert_keycode(row, col):
+    return row + (col << 3)
 
 # Hex offsets to scancode tables in the raw original fw. These tables
 # will be overwritten by our modified tables above
-string_table_offset = 0x22c8
-string_table_max = 0x235e
-scancode_table1_offset = 0x258a
-scancode_table2_offset = 0x23e6
 
-orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
+different_offset = 0x74
+
+# 0x233C - 0x74
+string_table_offset = 0x22c8 + different_offset
+# 0x23D2 - 0x74
+string_table_max = 0x235e + different_offset
+# 0x25FE - 0x74
+scancode_table1_offset = 0x258a + different_offset # len 128
+# 0x245A - 0x74
+scancode_table2_offset = 0x23e6 + different_offset # len 140
+
+# orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
+orig_fw_md5 = 'e48c8e0fe3b28bb6bde439f670c104ab'
 
 def write_scancode_table(table, f, offset):
     '''Write scancode table at specific offset in a file'''
@@ -105,16 +128,25 @@ def write_jump_to_bsl():
     # jump to 0x1000 (BSL entry addr).
 
     # bytecode for asm 'call 0xa780; nop'
-    dest.seek(0x83a)
+    # 0x8AE
+    different_offset = 0x74
+
+    dest.seek(0x83a + different_offset)
     dest.write('b01280a70343'.decode('hex'))
 
 if __name__ == '__main__':
     # Remap caps to ctrl
-    scancode_table1[key_id_caps] = scancode_table1[key_id_ctrl]
+    # scancode_table1[key_id_caps] = scancode_table1[key_id_ctrl]
 
-    # Switch down backspace to \ and \ to backspace
-    scancode_table1[key_id_backspace], scancode_table1[key_id_backslash] = \
-        scancode_table1[key_id_backslash], scancode_table1[key_id_backspace]
+    # # Switch down backspace to \ and \ to backspace
+    # scancode_table1[key_id_backspace], scancode_table1[key_id_backslash] = \
+        # scancode_table1[key_id_backslash], scancode_table1[key_id_backspace]
+
+    source_table1 = copy.copy(scancode_table1)
+    for source, dest in key_mapping.items():
+        _source = convert_keycode(source[0], source[1])
+        _dest = convert_keycode(dest[0], dest[1])
+        scancode_table1[_dest] = source_table1[_source]
 
     parser = argparse.ArgumentParser(
         description='Patch utility for Novatouch TKL firmware')
