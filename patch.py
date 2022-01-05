@@ -96,7 +96,8 @@ scancode_table1_offset = 0x258a + different_offset # len 128
 # 0x245A - 0x74
 scancode_table2_offset = 0x23e6 + different_offset # len 140
 
-orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
+# orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
+orig_fw_md5 = 'e48c8e0fe3b28bb6bde439f670c104ab'
 
 def write_scancode_table(table, f, offset):
     '''Write scancode table at specific offset in a file'''
@@ -115,8 +116,6 @@ def write_usb_string(f, s):
     f.write(encoded)
 
 def original_fw_valid(path):
-    #TODO: this is patched out, but that's not great
-    return True
     with open(path, 'r') as orig:
         m = md5.new()
         m.update(orig.read())
