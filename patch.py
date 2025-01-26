@@ -70,7 +70,7 @@ scancode_table2 = [0x00, 0x35, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23,
 # new_key == key that is sent
 remappings = [
     # (original_key, new_key)
-    ("caps", "super_l")
+    # ("caps", "super_l")
 ]
 
 # Hex offsets to scancode tables in the raw original fw. These tables
@@ -81,7 +81,7 @@ scancode_table1_offset = 0x258a
 scancode_table2_offset = 0x23e6
 
 #orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
-orig_fw_md5 = "fcacabdaa39c20e3eccdea438b656cd8"
+orig_fw_md5 = "67b06481f624b1b57e876ae855cefc2b"
 
 def write_scancode_table(table, f, offset):
     '''Write scancode table at specific offset in a file'''
@@ -93,7 +93,7 @@ def write_usb_string(f, s):
        length and type'''
     encoded = s.encode('utf-16le')
     if f.tell() + len(encoded) + 2 > string_table_max:
-        print 'USB string table is too big, will overwrite important stuffs in fw'
+        print('USB string table is too big, will overwrite important stuffs in fw')
         return
     f.write(chr(len(encoded)+2))
     f.write('\x03') # Not sure what this is, encoding type?
@@ -134,8 +134,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if not original_fw_valid(args.original):
-        print 'Wrong checksum of original firmware. Check that ' \
-            'you are using the correct file'
+        print('Wrong checksum of original firmware. Check that you are using the correct file')
         exit(-1)
 
     with open(args.original, 'rb') as orig:

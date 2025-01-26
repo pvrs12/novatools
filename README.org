@@ -15,9 +15,9 @@ It is possible you will brick your keyboard by using these tools.
 
 Make sure you store a copy of your original firmware safely.
 ** Pre-requisites
-- Python2
-- MSP430 toolchain
-- mspdebug OR python-msp430-tools (depending on flash method)
+- Python2 (probably want to use a venv)
+- MSP430 toolchain [on sourceforge](https://sourceforge.net/projects/mspgcc/files/msp430mcu/)
+- mspdebug OR python-msp430-tools (depending on flash method) (https://github.com/zsquareplusc/python-msp430-tools) - `pip install .`
 ** Flashing
 The keyboard can be programmed in two ways:
 1. Use JTAG or Spy-Bi-Wire (SBW) programming interface and a MSP430
