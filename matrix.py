@@ -91,22 +91,23 @@ key_indexes = {
     'right': 0x73,
 }
 
-matrix = {}
+if __name__ == "__main__":
+    matrix = {}
 
-for key,code in key_indexes.iteritems():
-    matrix[code] = key
+    for key,code in key_indexes.iteritems():
+        matrix[code] = key
 
-print '|\t',
-for col in range(0,16):
-    print '| %d\t' % col,
-print '\n|-'
-
-for row in range(0,8):
-    print '|%d\t' % row,
+    print '|\t',
     for col in range(0,16):
-        idx = row + (col << 3)
-        if idx in matrix:
-            print '| %s\t' % matrix[idx],
-        else:
-            print '|  \t',
-    print
+        print '| %d\t' % col,
+    print '\n|-'
+
+    for row in range(0,8):
+        print '|%d\t' % row,
+        for col in range(0,16):
+            idx = row + (col << 3)
+            if idx in matrix:
+                print '| %s\t' % matrix[idx],
+            else:
+                print '|  \t',
+        print

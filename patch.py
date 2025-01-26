@@ -5,13 +5,17 @@
 import md5
 import argparse
 
+import copy
+
+from matrix import key_indexes
+
 # These variables will be put into the modified firmware
 # Modify as you like
 
 # USB HID identifier strings
 usb_hid_strings = [
     'CM Storm',
-    'Coolermaster Novatouch TKL',
+    'patrick keymboard',
     '0',
     'HID Interface',
     'Keyboard',
@@ -62,10 +66,12 @@ scancode_table2 = [0x00, 0x35, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23,
                    0x00, 0x80, 0x00, 0x00]
 
 # See README for full id => key mapping
-key_id_ctrl = 17
-key_id_caps = 20
-key_id_backspace = 112
-key_id_backslash = 117
+# original_key == key that you press
+# new_key == key that is sent
+remappings = [
+    # (original_key, new_key)
+    ("caps", "super_l")
+]
 
 # Hex offsets to scancode tables in the raw original fw. These tables
 # will be overwritten by our modified tables above
@@ -74,7 +80,8 @@ string_table_max = 0x235e
 scancode_table1_offset = 0x258a
 scancode_table2_offset = 0x23e6
 
-orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
+#orig_fw_md5 = '67d2c8f71f273e30a0c69aa36e8bf609'
+orig_fw_md5 = "fcacabdaa39c20e3eccdea438b656cd8"
 
 def write_scancode_table(table, f, offset):
     '''Write scancode table at specific offset in a file'''
@@ -93,7 +100,7 @@ def write_usb_string(f, s):
     f.write(encoded)
 
 def original_fw_valid(path):
-    with open(path, 'r') as orig:
+    with open(path, 'rb') as orig:
         m = md5.new()
         m.update(orig.read())
         return m.hexdigest() == orig_fw_md5
@@ -110,11 +117,15 @@ def write_jump_to_bsl():
 
 if __name__ == '__main__':
     # Remap caps to ctrl
-    scancode_table1[key_id_caps] = scancode_table1[key_id_ctrl]
+    #scancode_table1[key_id_caps] = scancode_table1[key_id_ctrl]
 
     # Switch down backspace to \ and \ to backspace
-    scancode_table1[key_id_backspace], scancode_table1[key_id_backslash] = \
-        scancode_table1[key_id_backslash], scancode_table1[key_id_backspace]
+    # scancode_table1[key_id_backspace], scancode_table1[key_id_backslash] = \
+    #     scancode_table1[key_id_backslash], scancode_table1[key_id_backspace]
+    base_scancode_table1 = copy.copy(scancode_table1)
+    for original, new_key in remappings:
+        print("{} <= {}".format(original, new_key))
+        scancode_table1[key_indexes[original]] = base_scancode_table1[key_indexes[new_key]]
 
     parser = argparse.ArgumentParser(
         description='Patch utility for Novatouch TKL firmware')
@@ -127,8 +138,8 @@ if __name__ == '__main__':
             'you are using the correct file'
         exit(-1)
 
-    with open(args.original, 'r') as orig:
-        with open(args.output, 'w') as dest:
+    with open(args.original, 'rb') as orig:
+        with open(args.output, 'wb') as dest:
             # Copy the full original to destination file
             dest.write(orig.read())
 
